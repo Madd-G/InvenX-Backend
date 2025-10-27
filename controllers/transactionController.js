@@ -22,6 +22,92 @@ exports.getAllTransactions = (req, res) => {
     });
 };
 
+exports.getPaginatedTransactions = (req, res) => {
+    const pageNumber = parseInt(req.query.page, 10) || 1;
+    const limitNumber = parseInt(req.query.limit, 10) || 10;
+    const offset = (pageNumber - 1) * limitNumber;
+
+    const countQuery = 'SELECT COUNT(*) AS total FROM transactions';
+    const dataQuery = `
+        SELECT t.id, t.transaction_date, t.category_id, c.category_name, t.amount, t.note,
+               t.created_at, t.updated_at
+        FROM transactions t
+        JOIN categories c ON t.category_id = c.id
+        ORDER BY t.transaction_date DESC, t.id DESC
+        LIMIT ?, ?
+    `;
+
+    db.query(countQuery, (countErr, countResult) => {
+        if (countErr) {
+            return handleDbError(res, countErr);
+        }
+
+        const total = countResult[0]?.total || 0;
+        const totalPages = limitNumber > 0 ? Math.ceil(total / limitNumber) : 0;
+
+        db.query(dataQuery, [offset, limitNumber], (dataErr, results) => {
+            if (dataErr) {
+                return handleDbError(res, dataErr);
+            }
+
+            res.status(200).json({
+                total,
+                totalPages,
+                currentPage: pageNumber,
+                perPage: limitNumber,
+                data: results
+            });
+        });
+    });
+};
+
+exports.getTransactionsByCategoryPaginated = (req, res) => {
+    const categoryId = parseInt(req.params.categoryId, 10);
+
+    if (Number.isNaN(categoryId)) {
+        return res.status(400).json({ error: 'Invalid categoryId parameter' });
+    }
+
+    const pageNumber = parseInt(req.query.page, 10) || 1;
+    const limitNumber = parseInt(req.query.limit, 10) || 10;
+    const offset = (pageNumber - 1) * limitNumber;
+
+    const countQuery = 'SELECT COUNT(*) AS total FROM transactions WHERE category_id = ?';
+    const dataQuery = `
+        SELECT t.id, t.transaction_date, t.category_id, c.category_name, t.amount, t.note,
+               t.created_at, t.updated_at
+        FROM transactions t
+        JOIN categories c ON t.category_id = c.id
+        WHERE t.category_id = ?
+        ORDER BY t.transaction_date DESC, t.id DESC
+        LIMIT ?, ?
+    `;
+
+    db.query(countQuery, [categoryId], (countErr, countResult) => {
+        if (countErr) {
+            return handleDbError(res, countErr);
+        }
+
+        const total = countResult[0]?.total || 0;
+        const totalPages = limitNumber > 0 ? Math.ceil(total / limitNumber) : 0;
+
+        db.query(dataQuery, [categoryId, offset, limitNumber], (dataErr, results) => {
+            if (dataErr) {
+                return handleDbError(res, dataErr);
+            }
+
+            res.status(200).json({
+                categoryId,
+                total,
+                totalPages,
+                currentPage: pageNumber,
+                perPage: limitNumber,
+                data: results
+            });
+        });
+    });
+};
+
 exports.createTransaction = (req, res) => {
     const { transaction_date, category_id, amount, note } = req.body;
 
