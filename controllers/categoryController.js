@@ -1,11 +1,19 @@
 const db = require('../config/database');
 
+const mapCategoryRow = (row) => ({
+    id: row.id,
+    categoryName: row.category_name,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+});
+
 exports.getAllCategories = (req, res) => {
     db.query('SELECT * FROM categories', (err, results) => {
         if (err) {
             res.status(500).json({ error: err.message });
         } else {
-            res.status(200).json(results);
+            const mappedResults = results.map(mapCategoryRow);
+            res.status(200).json(mappedResults);
         }
     });
 };
@@ -31,7 +39,7 @@ exports.getCategoryById = (req, res) => {
         } else if (results.length === 0) {
             res.status(404).json({ message: 'Category not found' });
         } else {
-            res.status(200).json(results[0]);
+            res.status(200).json(mapCategoryRow(results[0]));
         }
     });
 };

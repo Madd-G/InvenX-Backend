@@ -1,13 +1,23 @@
 const db = require('../config/database');
 
-exports.getAllProducts = (req, res) => {
-    // db.query('SELECT * FROM products ORDER BY updated_at DESC', (err, results) => {
-    db.query('SELECT * FROM products', (err, results) => {
+const mapProductRow = (row) => ({
+    id: row.id,
+    productName: row.product_name,
+    categoryId: row.category_id,
+    stock: row.stock,
+    productGroup: row.product_group,
+    price: row.price,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+});
 
+exports.getAllProducts = (req, res) => {
+    db.query('SELECT * FROM products', (err, results) => {
         if (err) {
             res.status(500).json({ error: err.message });
         } else {
-            res.status(200).json(results);
+            const mappedResults = results.map(mapProductRow);
+            res.status(200).json(mappedResults);
         }
     });
 };
@@ -34,7 +44,7 @@ exports.getProductById = (req, res) => {
         } else if (results.length === 0) {
             res.status(404).json({ message: 'Product not found' });
         } else {
-            res.status(200).json(results[0]);
+            res.status(200).json(mapProductRow(results[0]));
         }
     });
 };
@@ -106,7 +116,8 @@ exports.searchProducts = (req, res) => {
         if (err) {
             res.status(500).json({ error: err.message });
         } else {
-            res.status(200).json(results);
+            const mappedResults = results.map(mapProductRow);
+            res.status(200).json(mappedResults);
         }
     });
 };
@@ -148,7 +159,7 @@ exports.getPaginatedProducts = (req, res) => {
                         totalPages,
                         currentPage: pageNumber,
                         perPage: limitNumber,
-                        data: results
+                        data: results.map(mapProductRow)
                     };
                     res.status(200).json(paginationData);
                 }

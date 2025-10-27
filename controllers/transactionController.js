@@ -5,6 +5,17 @@ const handleDbError = (res, err) => {
     res.status(500).json({ error: err.message });
 };
 
+const mapTransactionRow = (row) => ({
+    id: row.id,
+    transactionDate: row.transaction_date,
+    categoryId: row.category_id,
+    categoryName: row.category_name,
+    amount: row.amount,
+    note: row.note,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+});
+
 exports.getAllTransactions = (req, res) => {
     const query = `
         SELECT t.id, t.transaction_date, t.category_id, c.category_name, t.amount, t.note,
@@ -18,7 +29,8 @@ exports.getAllTransactions = (req, res) => {
         if (err) {
             return handleDbError(res, err);
         }
-        res.status(200).json(results);
+        const mappedResults = results.map(mapTransactionRow);
+        res.status(200).json(mappedResults);
     });
 };
 
@@ -55,7 +67,7 @@ exports.getPaginatedTransactions = (req, res) => {
                 totalPages,
                 currentPage: pageNumber,
                 perPage: limitNumber,
-                data: results
+                data: results.map(mapTransactionRow)
             });
         });
     });
@@ -102,7 +114,7 @@ exports.getTransactionsByCategoryPaginated = (req, res) => {
                 totalPages,
                 currentPage: pageNumber,
                 perPage: limitNumber,
-                data: results
+                data: results.map(mapTransactionRow)
             });
         });
     });
@@ -151,7 +163,7 @@ exports.getTransactionById = (req, res) => {
         if (results.length === 0) {
             return res.status(404).json({ message: 'Transaction not found' });
         }
-        res.status(200).json(results[0]);
+        res.status(200).json(mapTransactionRow(results[0]));
     });
 };
 
