@@ -4,6 +4,8 @@ const transactionController = require('../controllers/transactionController');
 
 router.get('/', transactionController.getAllTransactions);
 router.get('/paginated', transactionController.getPaginatedTransactions);
+router.get('/summary', transactionController.getSummary);
+router.get('/category/:categoryId/summary', transactionController.getSummaryByCategory);
 router.get('/category/:categoryId/paginated', transactionController.getTransactionsByCategoryPaginated);
 router.post('/', transactionController.createTransaction);
 router.get('/:id', transactionController.getTransactionById);

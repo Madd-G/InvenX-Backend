@@ -208,3 +208,93 @@ exports.deleteTransaction = (req, res) => {
         res.status(200).json({ message: 'Transaction deleted successfully' });
     });
 };
+
+exports.getSummary = (req, res) => {
+    const summaryQuery = `
+        SELECT 
+            c.id AS category_id,
+            c.category_name,
+            COALESCE(SUM(t.amount), 0) AS total
+        FROM categories c
+        LEFT JOIN transactions t ON c.id = t.category_id
+        GROUP BY c.id, c.category_name
+    `;
+
+    db.query(summaryQuery, (err, results) => {
+        if (err) {
+            return handleDbError(res, err);
+        }
+
+        let income = 0;
+        let expenses = 0;
+
+        results.forEach(row => {
+            if (row.category_name === 'income') {
+                income = parseFloat(row.total) || 0;
+            } else if (row.category_name === 'expenses') {
+                expenses = parseFloat(row.total) || 0;
+            }
+        });
+
+        const balance = income - expenses;
+
+        res.status(200).json({
+            balance,
+            income,
+            expenses
+        });
+    });
+};
+
+exports.getSummaryByCategory = (req, res) => {
+    const categoryId = parseInt(req.params.categoryId, 10);
+
+    if (Number.isNaN(categoryId)) {
+        return res.status(400).json({ error: 'Invalid categoryId parameter' });
+    }
+
+    const summaryQuery = `
+        SELECT 
+            c.id AS category_id,
+            c.category_name,
+            COALESCE(SUM(t.amount), 0) AS total
+        FROM categories c
+        LEFT JOIN transactions t ON c.id = t.category_id
+        WHERE c.id = ?
+        GROUP BY c.id, c.category_name
+    `;
+
+    db.query(summaryQuery, [categoryId], (err, results) => {
+        if (err) {
+            return handleDbError(res, err);
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ message: 'Category not found' });
+        }
+
+        const row = results[0];
+        const total = parseFloat(row.total) || 0;
+        const categoryName = row.category_name;
+
+        let income = 0;
+        let expenses = 0;
+        let balance = 0;
+
+        if (categoryName === 'income') {
+            income = total;
+            balance = total;
+        } else if (categoryName === 'expenses') {
+            expenses = total;
+            balance = -total;
+        }
+
+        res.status(200).json({
+            categoryId,
+            categoryName,
+            balance,
+            income,
+            expenses
+        });
+    });
+};
