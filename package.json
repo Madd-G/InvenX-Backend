@@ -1,9 +1,10 @@
 {
   "name": "invenx_backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Backend API for InvenX - Personal finance management system with transaction tracking, inventory management, and financial reporting",
+  "main": "app.js",
   "scripts": {
+    "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
