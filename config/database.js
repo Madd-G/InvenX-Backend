@@ -2,7 +2,7 @@ const mysql = require('mysql');
 
 const db = mysql.createPool({
     connectionLimit: 10,
-    host: 'sql12.freesqldatabase.com	',
+    host: 'sql12.freesqldatabase.com',
     user: 'sql12805853',
     password: 'kd3k989Y5K',
     database: 'sql12805853',
