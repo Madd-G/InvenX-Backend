@@ -3,9 +3,9 @@ const mysql = require('mysql');
 const db = mysql.createPool({
     connectionLimit: 10,
     host: 'sql12.freesqldatabase.com',
-    user: 'sql12807007',
-    password: 'HhTRcyxLup',
-    database: 'sql12807007',
+    user: 'sql12808066',
+    password: 'AHUnHbkxY5',
+    database: 'sql12808066',
     waitForConnections: true,
     queueLimit: 0,
     connectTimeout: 10000,
